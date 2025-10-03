@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifer: MIT
 pragma solidity ^0.8.28;
 
 contract MyToken {
