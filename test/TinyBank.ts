@@ -13,6 +13,7 @@ describe("TinyBank", () => {
         signers = await hre.ethers.getSigners();
         myTokenC = await hre.ethers.deployContract("MyToken", ["MyToken", "MT", DECIMALS, MINTING_AMOUNT]);
         tinyBankC = await hre.ethers.deployContract("TinyBank", [await myTokenC.getAddress()]);
+        await myTokenC.setManager(await tinyBankC.getAddress());
     });
 
     describe("Initialized stake check", () => {
