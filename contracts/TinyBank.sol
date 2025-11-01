@@ -14,7 +14,7 @@ contract TinyBank {
     IMyToken public stakingToken;
 
     mapping(address => uint256) public lastClaimedBlock;
-    uint256 rewardPerBlock = 1 * 10 ** 10;
+    uint256 rewardPerBlock = 1 * 10 ** 18;
 
     mapping(address => uint256) public staked;
     uint256 public totalStaked;
@@ -23,16 +23,18 @@ contract TinyBank {
         stakingToken = _stakingToken;
     }
 
-    function distributeReward(address _to) internal {
-        uint256 blocks = block.number - lastClaimedBlock[_to];
-        uint256 reward = (blocks * rewardPerBlock * staked[_to]) / totalStaked;
-        stakingToken.mint(reward, _to);
+    modifier updateReward(address _to) {
+        if (staked[_to] > 0) {
+            uint256 blocks = block.number - lastClaimedBlock[_to];
+            uint256 reward = (blocks * rewardPerBlock * staked[_to]) / totalStaked;
+            stakingToken.mint(reward, _to);
+        }
         lastClaimedBlock[_to] = block.number;
+        _;
     }
 
-    function stake(uint256 _amount) external {
+    function stake(uint256 _amount) external updateReward(msg.sender) {
         require(_amount >= 0, "cannot stake 0 amount");
-        distributeReward(msg.sender);
         stakingToken.transferFrom(msg.sender, address(this), _amount);
         staked[msg.sender] += _amount;
         totalStaked += _amount;
@@ -40,9 +42,8 @@ contract TinyBank {
         emit Staked(msg.sender, _amount);
     }
 
-    function withdraw(uint256 _amount) external {
+    function withdraw(uint256 _amount) external updateReward(msg.sender){
         require(staked[msg.sender] >= _amount, "insufficient staked token");
-        distributeReward(msg.sender);
         stakingToken.transfer(_amount, msg.sender);
         staked[msg.sender] -= _amount;
         totalStaked -= _amount;
