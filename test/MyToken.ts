@@ -30,10 +30,17 @@ describe("MyToken", () => {
     });
   });
 
-  describe("Mint test", () => {
+  describe("Mint", () => {
     it("should return 1MT balance for signer 0", async () => {
       const signer0 = signers[0];
       expect(await myTokenC.balanceOf(signer0.address)).equal(MINTING_AMOUNT*10n**DECIMALS);
+    });
+
+    it("should return or revert when minting infinitly", async () => {
+      const hacker = signers[2];
+      const mintingAgainAmount = hre.ethers.parseUnits("10000", DECIMALS);
+      await expect(myTokenC.connect(hacker).mint(mintingAgainAmount, hacker.address)).to.be.revertedWith("You are not authorized to manage this token");
+      
     });
   });
 
