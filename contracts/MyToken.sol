@@ -37,6 +37,10 @@ contract MyToken {
         emit Transfer(_from, _to, _amount);
     }
 
+    function mint(uint256 _amount, address _owner) external {
+        _mint(_amount, _owner);
+    }
+
     function _mint(uint256 _amount, address _owner) internal { 
         totalSupply += _amount;
         balanceOf[_owner] += _amount;
