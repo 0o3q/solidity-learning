@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-contract MyToken {
+import "./ManagedAccess.sol";
+
+contract MyToken is ManagedAccess {
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed spender, uint256 amount);
 
@@ -13,7 +15,7 @@ contract MyToken {
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
 
-    constructor(string memory _name, string memory _symbol, uint8 _decimals, uint256 _amount) {
+    constructor(string memory _name, string memory _symbol, uint8 _decimals, uint256 _amount) ManagedAccess(msg.sender, msg.sender) {
         name = _name;
         symbol = _symbol;
         decimals = _decimals;
@@ -37,15 +39,19 @@ contract MyToken {
         emit Transfer(_from, _to, _amount);
     }
 
-    function mint(uint256 _amount, address _owner) external {
-        _mint(_amount, _owner);
+    function mint(uint256 _amount, address _to) external onlyManager {
+        _mint(_amount, _to);
     }
 
-    function _mint(uint256 _amount, address _owner) internal { 
-        totalSupply += _amount;
-        balanceOf[_owner] += _amount;
+    function setManager(address _manager) external onlyOwner {
+        manager = _manager;
+    }
 
-        emit Transfer(address(0), _owner, _amount);
+    function _mint(uint256 _amount, address _to) internal { 
+        totalSupply += _amount;
+        balanceOf[_to] += _amount;
+
+        emit Transfer(address(0), _to, _amount);
     }
 
     function transfer(uint256 _amount, address _to) external {
