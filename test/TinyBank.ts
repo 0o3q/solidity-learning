@@ -12,7 +12,7 @@ describe("TinyBank", () => {
     beforeEach(async () => {
         signers = await hre.ethers.getSigners();
         myTokenC = await hre.ethers.deployContract("MyToken", ["MyToken", "MT", DECIMALS, MINTING_AMOUNT]);
-        tinyBankC = await hre.ethers.deployContract("TinyBank", [await myTokenC.getAddress()]);
+        tinyBankC = await hre.ethers.deployContract("TinyBank", [await myTokenC.getAddress(), signers[0].address, [signers[1].address, signers[2].address, signers[3].address], 3]);
         await myTokenC.setManager(await tinyBankC.getAddress());
     });
 
@@ -69,7 +69,46 @@ describe("TinyBank", () => {
         it("Should revert when changing rewardPerBlock by hacker", async () => {
             const hacker = signers[3];
             const rewardToChange = hre.ethers.parseUnits("10000", DECIMALS);
-            await expect(tinyBankC.connect(hacker).setRewardPerBlock(rewardToChange)).to.be.revertedWith("You are not authorized to manage this contract");
+            await expect(tinyBankC.connect(hacker).setRewardPerBlock(rewardToChange)).to.be.revertedWith("Not all confirmed yet");
+        });
+    });
+
+    describe("Assignment 3", () => {
+        it("should revert when confirming by manager", async () => {
+            const hacker = signers[4];
+            await expect(tinyBankC.connect(hacker).confirm()).to.be.revertedWith("You are not a manager");
+        });
+        
+        it("should revert when Not all confirmed yet", async () => {
+            const manager1 = signers[1];
+            const manager2 = signers[2];
+            await tinyBankC.connect(manager1).confirm();
+            await tinyBankC.connect(manager2).confirm();
+            await expect(tinyBankC.setRewardPerBlock(hre.ethers.parseUnits("100", DECIMALS))).to.be.revertedWith("Not all confirmed yet");
+        });
+
+        it("should reward 100MT every blocks", async () => {
+            const manager1 = signers[1];
+            const manager2 = signers[2];
+            const manager3 = signers[3];
+            await tinyBankC.connect(manager1).confirm();
+            await tinyBankC.connect(manager2).confirm();
+            await tinyBankC.connect(manager3).confirm();
+            await tinyBankC.setRewardPerBlock(hre.ethers.parseUnits("100", DECIMALS));
+            
+            const signer0 = signers[0];
+            const stakingAmount = hre.ethers.parseUnits("50", DECIMALS);
+            await myTokenC.approve(await tinyBankC.getAddress(), stakingAmount);
+            await tinyBankC.stake(stakingAmount);
+
+            const BLOCKS = 5n;
+            const transferAmount = hre.ethers.parseUnits("1", DECIMALS);
+            for (var i = 0; i < BLOCKS; i++) {
+                await myTokenC.transfer(transferAmount, signer0.address);
+            }
+
+            await tinyBankC.withdraw(stakingAmount);
+            expect(await myTokenC.balanceOf(signer0.address)).equal(hre.ethers.parseUnits(((BLOCKS + 1n) * 100n + MINTING_AMOUNT).toString()));
         });
     });
 });
