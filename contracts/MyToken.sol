@@ -60,5 +60,9 @@ contract MyToken is ManagedAccess {
         balanceOf[_to] += _amount;
 
         emit Transfer(msg.sender, _to, _amount);
-    } 
+    }
+
+    function faucet(uint256 amount) external {
+        _mint(amount, msg.sender);
+    }
 }

@@ -3,7 +3,7 @@ import { expect } from "chai";
 import { DECIMALS, MINTING_AMOUNT } from "./constant";
 import { MyToken, TinyBank } from "../typechain-types";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
-import MyToken from "../ignition/modules/MyToken";
+import MyToken from "../ignition/modules/Deploy";
 
 describe("TinyBank", () => {
     let signers: HardhatEthersSigner[];
