@@ -26,21 +26,23 @@ describe("MyToken", () => {
     });
 
     it("should return 100 totalSupply", async () => {
-      expect(await myTokenC.totalSupply()).equal(MINTING_AMOUNT*10n**DECIMALS);
+      expect(await myTokenC.totalSupply()).equal(MINTING_AMOUNT * 10n ** DECIMALS);
     });
   });
 
   describe("Mint", () => {
-    it("should return 1MT balance for signer 0", async () => {
+    it("should return initial supply + 1MT balance for signer 0", async () => {
       const signer0 = signers[0];
-      expect(await myTokenC.balanceOf(signer0.address)).equal(MINTING_AMOUNT*10n**DECIMALS);
+      const oneMt = hre.ethers.parseUnits("1", DECIMALS);
+      await myTokenC.mint(oneMt, signer0.address);
+      expect(await myTokenC.balanceOf(signer0.address)).equal(MINTING_AMOUNT * 10n ** DECIMALS + oneMt);
     });
 
     it("should return or revert when minting infinitly", async () => {
       const hacker = signers[2];
       const mintingAgainAmount = hre.ethers.parseUnits("10000", DECIMALS);
       await expect(myTokenC.connect(hacker).mint(mintingAgainAmount, hacker.address)).to.be.revertedWith("You are not authorized to manage this contract");
-      
+
     });
   });
 

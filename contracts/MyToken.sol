@@ -30,7 +30,7 @@ contract MyToken is ManagedAccess {
 
     function transferFrom(address _from, address _to, uint256 _amount) external {
         address spender = msg.sender;
-        // require(balanceOf[_from] >= _amount, "insufficient balance");
+        require(balanceOf[_from] >= _amount, "insufficient balance");
         require(allowance[_from][spender] >= _amount, "insufficient allowance");
         allowance[_from][spender] -= _amount;
         balanceOf[_from] -= _amount;
